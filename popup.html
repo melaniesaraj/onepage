@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+    <head>
+        <title>Let's go</title>
+        <script src="jQuery.js"></script>
+        <script src="popup.js"></script>
+        <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+        <div id="popup">
+            <div id="status" class="hidden"></div>
+            <div id="mainContent">
+                <button class="btn" type="submit" id="depaginateBtn" disabled>De-paginate</button>
+                <div class="spinner hidden">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+

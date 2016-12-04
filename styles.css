@@ -1,0 +1,87 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif; /* TODO: Open Sans or some other gr8 font */
+    font-size: 100%;
+    color: #222;
+}
+#popup {
+    width: 350px;
+}
+#status {
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 15px;
+}
+
+/* buttons */
+.btn {
+    border-radius: 3px;
+    border: 1px solid rgba(82, 165, 254, 1);
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 120%;
+    background-color: rgba(108, 179, 254, 1);
+}
+.btn:disabled {
+    border-color: rgba(204, 219, 235, 1);
+    background-color: rgba(182, 203, 226, 1);
+}
+.btn:not(:disabled) {
+    cursor: pointer;
+}
+
+/* generic helper classes */
+.hidden {
+    display: none !important;
+}
+
+/* spinner - overkill? adapted from http://tobiasahlin.com/spinkit/ */
+.spinner {
+    margin: 2px 5px;
+    width: 30px;
+    height: 20px;
+    text-align: center;
+    font-size: 10px;
+    display: inline-block;
+}
+.spinner > div {
+    background-color: rgba(90, 1, 198, 1);
+    height: 100%;
+    width: 3px;
+    display: inline-block;
+    -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+    animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+.spinner .rect2 {
+    -webkit-animation-delay: -1.1s;
+    animation-delay: -1.1s;
+}
+.spinner .rect3 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+}
+.spinner .rect4 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+}
+.spinner .rect5 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+}
+@-webkit-keyframes sk-stretchdelay {
+    0%, 40%, 100% { -webkit-transform: scaleY(0.4) }  
+    20% { -webkit-transform: scaleY(1.0) }
+}
+@keyframes sk-stretchdelay {
+    0%, 40%, 100% { 
+        transform: scaleY(0.4);
+        -webkit-transform: scaleY(0.4);
+    }  20% { 
+        transform: scaleY(1.0);
+        -webkit-transform: scaleY(1.0);
+    }
+}
