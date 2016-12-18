@@ -5,8 +5,6 @@ var listener = function(msg, _, sendResponse) {
     console.log('Got message from onepage.  Request type: ' + msg.requestType);
     if (msg.requestType == "replaceDOMElement") {
         try {
-            console.log(msg.selector);
-            console.log($(msg.selector));
             var elmToReplace = $(document).find(msg.selector)[0];
             elmToReplace.replaceWith($(msg.elmToInsertStr)[0]);
             sendResponse({ success: true });
