@@ -10,11 +10,19 @@ body {
 #popup {
     width: 350px;
 }
-#status {
+#status, #secondaryStatus {
     white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 15px;
+    font-weight: 600;
+}
+#secondaryStatus {
+    font-style: italic;
+}
+#deslideLink {
+    float: right;
+    font-weight: 600;
 }
 
 /* buttons */
