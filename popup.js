@@ -85,8 +85,8 @@ function replaceDOMElements(selector, elmToInsertHtml, callback, replaceMultiple
 }
 
 /**
- * Sends a message requesting to replace an element with another to the script running on the page
- * and then calls callback.
+ * Sends a message requesting to add a class to element(s) to the script running on the page and
+ * then calls callback.
  */
 function addClassToDOMElements(selector, classToAdd, callback) {
     var queryInfo = {
@@ -220,6 +220,7 @@ function getSupportedSitesInfo() {
 
         // Example URLs:
         // Anything containing refinery29.com
+        // -- http://www.refinery29.com/2016/12/133127/how-to-wrap-presents
         "refinery29.com": {
             loadAll: function (thisInfo, fullArticleContainer, url) {
                 addClassToDOMElements('.opener', 'isVisible active', function (unused) {
@@ -238,6 +239,7 @@ function getSupportedSitesInfo() {
             // http://www.knowable.com/a/article-title-here/p-10/
             // http://www.knowable.com/a/article-title-here/p-10#something
             // http://www.knowable.com/a/article-title-here/p-10?x=y
+            // -- http://www.knowable.com/a/23-people-were-asked-what-is-the-most-messed-up-family-secret-you-know
             getReplaceFormat: function (url) {
                 var ret = '';
                 var regex = /(http[s]?:\/\/)?(www\.)*(knowable\.com\/a\/[^\/]+)((\/p-)([0-9]*))?(.*)/i;
@@ -301,13 +303,15 @@ function getSupportedSitesInfo() {
             }
         },
 
-        "suggest.com": {
+        "suggest.com": { // also applies to minq.com
             // Example URLs:
-            // http://www.suggest.com/section/1234/article-title-here
-            // http://www.suggest.com/section/1234/article-title-here/
-            // http://www.suggest.com/section/1234/article-title-here/?story_page=10
-            // http://www.suggest.com/section/1234/article-title-here/?story_page=10#something
-            // http://www.suggest.com/section/1234/article-title-here/?story_page=10&something 
+            // http://www.suggest|minq.com/section/1234/article-title-here
+            // http://www.suggest|minq.com/section/1234/article-title-here/
+            // http://www.suggest|minq.com/section/1234/article-title-here/?story_page=10
+            // http://www.suggest|minq.com/section/1234/article-title-here/?story_page=10#something
+            // http://www.suggest|minq.com/section/1234/article-title-here/?story_page=10&something 
+            // -- http://www.suggest.com/lifestyle/1600362/how-did-they-even-get-hired-employees-share-their-17-most-insane-crazy-employee-stories/ 
+            // -- http://www.minq.com/lifestyle/1599990/21-people-share-awesome-stories-about-how-they-became-friends-with-their-bffs/ 
             getReplaceFormat: function (url) {
                 var ret = '';
                 var regex = /(http[s]?:\/\/)?(www\.)*(.+\.com\/[^\/]+\/[^\/]+\/[^\/]+)((\/\?story_page=)([0-9]*))?(.*)/i;
@@ -374,6 +378,7 @@ function getSupportedSitesInfo() {
             // http://www.emgn.com/s3/article-title-here/10/
             // http://www.emgn.com/s3/article-title-here/10#something
             // http://www.emgn.com/s3/article-title-here/10?x=y
+            // -- http://emgn.com/s2/19-extreme-body-transformations-thatll-leave-jaw-aching
             getReplaceFormat: function (url) {
                 var ret = '';
                 var regex = /(http[s]?:\/\/)?(www\.)*(emgn\.com\/[^\/]+\/[^\/]+)((\/)([0-9]*))?(.*)/i;
@@ -457,6 +462,7 @@ function getSupportedSitesInfo() {
             // http://www.lifebuzz.com/article-title-here/10/
             // http://www.lifebuzz.com/article-title-here/10#something
             // http://www.lifebuzz.com/article-title-here/10/?x=y
+            // -- http://www.lifebuzz.com/princess-diana/
             getReplaceFormat: function (url) {
                 var ret = '';
                 var regex = /(http[s]?:\/\/)?(www\.)*(lifebuzz\.com\/[^\/]+)((\/)([0-9]*))?(.*)/i;
