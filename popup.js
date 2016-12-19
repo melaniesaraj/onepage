@@ -214,37 +214,18 @@ function getSupportedSitesInfo() {
             // http://www.knowable.com/a/article-title-here/p-10?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var protocol = '';
-                var protocolEnd = url.indexOf('://');
-                if (protocolEnd >= 0) {
-                    protocol = url.substring(0, protocolEnd + 3);
-                    url = url.substring(protocolEnd + 3);
-                }
-                var parts = url.split('/');
-                if (parts.length < 3 || parts[1] != 'a') {
-                    return '';
-                }
-                if (parts.length == 3) { // nothing after the article title
-                    return (protocol ? protocol : 'http://') + url + '/p-{0}';
-                }
-                if (parts.length == 4 && parts[3] == '') { // nothing after title, trailing slash
-                    return (protocol ? protocol : 'http://') + url + 'p-{0}';
-                }
-                var pageRegExp = /^(p-)([0-9]*)((?:\?.*)|(?:#.*))?/i;
-                var matches = parts[3].match(pageRegExp);
-                if (!matches || matches.length < 2) {
+                var regex = /(http[s]?:\/\/)?(www\.)*(knowable.com\/a\/[^\/]+)((\/p-)([0-9]*))?(.*)/i;
+                var matches = url.match(regex);
+                if (!matches) {
                     renderStatus('Invalid URL format :(');
+                    return ret;
                 }
-                // Reconstruct URL - start with 1 because 0 is the full match
-                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/' + parts[2] + '/';
-                for (var i = 1; i < matches.length; i++) {
-                    if (matches[i] == null)
-                        continue;
-                    if (i == 2)
-                        ret += '{0}';
-                    else
-                        ret += matches[i];
-                }
+                // Reconstruct URL
+                ret += (matches[1] ? matches[1] : '')               // http://
+                    + (matches[2] ? matches[2] : '')                // www.
+                    + (matches[3])                                  // knowable.com/a/article-title-here
+                    + (matches[4] ? matches[5] + '{0}' : 'p-{0}')   // /p-X
+                    + (matches[7] ? matches[7] : '');               // anything after that
                 return ret;
             },
             articleMeatSelector: '.article-body',
@@ -296,44 +277,25 @@ function getSupportedSitesInfo() {
 
         "suggest.com": {
             // Example URLs:
-            // http://www.suggest.com/section/article-title-here
-            // http://www.suggest.com/section/article-title-here/
-            // http://www.suggest.com/section/article-title-here/?story_page=10
-            // http://www.suggest.com/section/article-title-here/?story_page=10#something
-            // http://www.suggest.com/section/article-title-here/?story_page=10&something 
+            // http://www.suggest.com/section/1234/article-title-here
+            // http://www.suggest.com/section/1234/article-title-here/
+            // http://www.suggest.com/section/1234/article-title-here/?story_page=10
+            // http://www.suggest.com/section/1234/article-title-here/?story_page=10#something
+            // http://www.suggest.com/section/1234/article-title-here/?story_page=10&something 
             getReplaceFormat: function (url) {
                 var ret = '';
-                var protocol = '';
-                var protocolEnd = url.indexOf('://');
-                if (protocolEnd >= 0) {
-                    protocol = url.substring(0, protocolEnd + 3);
-                    url = url.substring(protocolEnd + 3);
-                }
-                var parts = url.split('/');
-                if (parts.length < 4) {
-                    return '';
-                }
-                if (parts.length == 4) { // nothing after the article title
-                    return (protocol ? protocol : 'http://') + url + '?story_page={0}';
-                }
-                if (parts.length == 5 && parts[4] == '') { // nothing after title, trailing slash
-                    return (protocol ? protocol : 'http://') + url + '?story_page={0}';
-                }
-                var pageRegExp = /^(\?story_page=)([0-9]*)((?:\?.*)|(?:#.*))?/i;
-                var matches = parts[4].match(pageRegExp);
-                if (matches == null || matches.length < 2) {
+                var regex = /(http[s]?:\/\/)?(www\.)*(suggest.com\/[^\/]+\/[^\/]+\/[^\/]+)((\/\?story_page=)([0-9]*))?(.*)/i;
+                var matches = url.match(regex);
+                if (!matches) {
                     renderStatus('Invalid URL format :(');
+                    return ret;
                 }
-                // Reconstruct URL - start with 1 because 0 is the full match
-                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/' + parts[2] + '/' + parts[3] + '/';
-                for (var i = 1; i < matches.length; i++) {
-                    if (matches[i] == null)
-                        continue;
-                    if (i == 3 || (i == 2 && !matches[3])) // lol whatever
-                        ret += '{0}';
-                    else
-                        ret += matches[i];
-                }
+                // Reconstruct URL
+                ret += (matches[1] ? matches[1] : '')               // http://
+                    + (matches[2] ? matches[2] : '')                // www.
+                    + (matches[3])                                  // suggest.com/section/1234/article-title-here
+                    + (matches[4] ? matches[5] + '{0}' : '/?story_page={0}')   // /?story_page=X
+                    + (matches[7] ? matches[7] : '');               // anything after that
                 return ret;
             },
             articleMeatSelector: '.slide',
@@ -388,37 +350,18 @@ function getSupportedSitesInfo() {
             // http://www.emgn.com/s3/article-title-here/10?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var protocol = '';
-                var protocolEnd = url.indexOf('://');
-                if (protocolEnd >= 0) {
-                    protocol = url.substring(0, protocolEnd + 3);
-                    url = url.substring(protocolEnd + 3);
-                }
-                var parts = url.split('/');
-                if (parts.length < 3) {
-                    return '';
-                }
-                if (parts.length == 3) { // nothing after the article title
-                    return (protocol ? protocol : 'http://') + url + '/{0}';
-                }
-                if (parts.length == 4 && parts[3] == '') { // nothing after title, trailing slash
-                    return (protocol ? protocol : 'http://') + url + '{0}';
-                }
-                var pageRegExp = /^([0-9]*)((?:\?.*)|(?:#.*))?/i;
-                var matches = parts[3].match(pageRegExp);
-                if (!matches || matches.length < 2) {
+                var regex = /(http[s]?:\/\/)?(www\.)*(emgn.com\/[^\/]+\/[^\/]+)((\/)([0-9]*))?(.*)/i;
+                var matches = url.match(regex);
+                if (!matches) {
                     renderStatus('Invalid URL format :(');
+                    return ret;
                 }
-                // Reconstruct URL - start with 1 because 0 is the full match
-                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/' + parts[2] + '/';
-                for (var i = 1; i < matches.length; i++) {
-                    if (matches[i] == null)
-                        continue;
-                    if (i == 2)
-                        ret += '{0}';
-                    else
-                        ret += matches[i];
-                }
+                // Reconstruct URL
+                ret += (matches[1] ? matches[1] : '')               // http://
+                    + (matches[2] ? matches[2] : '')                // www.
+                    + (matches[3])                                  // emgn.com/something/article-title-here
+                    + (matches[4] ? matches[5] + '{0}' : '/{0}')    // /X
+                    + (matches[7] ? matches[7] : '');               // anything after that
                 return ret;
             },
             articleMeatSelector: '.content > *:not(aside):not(.pagination):not(.rrssb-holder)',
@@ -490,37 +433,18 @@ function getSupportedSitesInfo() {
             // http://www.lifebuzz.com/article-title-here/10/?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var protocol = '';
-                var protocolEnd = url.indexOf('://');
-                if (protocolEnd >= 0) {
-                    protocol = url.substring(0, protocolEnd + 3);
-                    url = url.substring(protocolEnd + 3);
-                }
-                var parts = url.split('/');
-                if (parts.length < 2) {
-                    return '';
-                }
-                if (parts.length == 2) { // nothing after the article title
-                    return (protocol ? protocol : 'http://') + url + '/{0}';
-                }
-                if (parts.length == 3 && parts[2] == '') { // nothing after title, trailing slash
-                    return (protocol ? protocol : 'http://') + url + '{0}';
-                }
-                var pageRegExp = /^([0-9]*)((?:\?.*)|(?:#.*))?/i;
-                var matches = parts[2].match(pageRegExp);
-                if (!matches || matches.length < 1) {
+                var regex = /(http[s]?:\/\/)?(www\.)*(lifebuzz.com\/[^\/]+)((\/)([0-9]*))?(.*)/i;
+                var matches = url.match(regex);
+                if (!matches) {
                     renderStatus('Invalid URL format :(');
+                    return ret;
                 }
-                // Reconstruct URL - start with 1 because 0 is the full match
-                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/';
-                for (var i = 1; i < matches.length; i++) {
-                    if (matches[i] == null)
-                        continue;
-                    if (i == 1)
-                        ret += '{0}';
-                    else
-                        ret += matches[i];
-                }
+                // Reconstruct URL
+                ret += (matches[1] ? matches[1] : '')               // http://
+                    + (matches[2] ? matches[2] : '')                // www.
+                    + (matches[3])                                  // lifebuzz.com/article-title-here
+                    + (matches[4] ? matches[5] + '{0}' : '/{0}')    // /X
+                    + (matches[7] ? matches[7] : '');               // anything after that
                 return ret;
             },
             articleMeatSelector: '.single > *:not(#desktop-below-post-trending)',
