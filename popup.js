@@ -39,14 +39,14 @@ function getCurrentTabUrl(callback) {
  * Thanks, StackOverflow user Xan! http://stackoverflow.com/a/23895822/1882961 
  */
 function ensureSendMessage(tabId, message, callback) {
-    chrome.tabs.sendMessage(tabId, { ping: true }, function (response) {
+    chrome.tabs.sendMessage(tabId, { requestType: 'ping' }, function (response) {
         if (response && response.pong) {
             // Content script ready
             chrome.tabs.sendMessage(tabId, message, callback);
         } 
         else { 
             // No listener on the other end
-            chrome.tabs.executeScript(tabId, { file: "contentScript.js" }, function () {
+            chrome.tabs.executeScript(tabId, { file: 'contentScript.js' }, function () {
                 if (chrome.runtime.lastError) {
                     console.error(chrome.runtime.lastError);
                 }
@@ -61,7 +61,7 @@ function ensureSendMessage(tabId, message, callback) {
  * Sends a message requesting to replace an element with another to the script running on the page
  * and then calls callback.
  */
-function replaceDOMElement(selector, elmToInsertStr, callback) {
+function replaceDOMElements(selector, elmToInsertHtml, callback, replaceMultiple) {
     var queryInfo = {
         active: true,
         currentWindow: true
@@ -70,7 +70,8 @@ function replaceDOMElement(selector, elmToInsertStr, callback) {
         var tab = tabs[0];
         chrome.tabs.getSelected(null, function(tab) {
             ensureSendMessage(tab.id, 
-                { requestType: "replaceDOMElement", selector: selector, elmToInsertStr: elmToInsertStr },
+                { requestType: "replaceDOMElements", selector: selector, 
+                    elmToInsertHtml: elmToInsertHtml, replaceMultiple: replaceMultiple },
                 function (response) {
                     if (!response) {
                         displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
@@ -79,32 +80,6 @@ function replaceDOMElement(selector, elmToInsertStr, callback) {
                     }
                     callback(response);
                 });
-        });
-    });
-}
-
-/**
- * Sends a message requesting to replace an element with another to the script running on the page
- * and then calls callback.
- */
-function addClassToDOMElement(selector, classToAdd, callback) {
-    var queryInfo = {
-        active: true,
-        currentWindow: true
-    };
-    chrome.tabs.query(queryInfo, function (tabs) {
-        var tab = tabs[0];
-        chrome.tabs.getSelected(null, function(tab) {
-            chrome.tabs.sendMessage(tab.id, 
-            { requestType: "addClassToDOMElement", selector: selector, classToAdd: classToAdd },
-            function (response) {
-                if (!response) {
-                    displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
-                        true); // reenable button
-                    return;
-                }
-                callback(response);
-            });
         });
     });
 }
@@ -173,7 +148,7 @@ function loadAll(url, baseSite) {
     $('#depaginateBtn').attr('disabled', true);
 
     // Create a new div that we will insert onto the page
-    var fullArticleContainer = $('<div id="newArticleBody" class="' +  siteInfo.articleMeatSelector + '"></div>');
+    var fullArticleContainer = $('<div id="newArticleBody"></div>');
 
     // Call the handler for the particular site.
     // (Is it weird to pass siteInfo in?  I did it this way because I'm kinda treating these like classes,
@@ -221,8 +196,8 @@ function getSupportedSitesInfo() {
         // Anything containing refinery29.com
         "refinery29.com": {
             loadAll: function (thisInfo, fullArticleContainer, url) {
-                addClassToDOMElement('.opener', 'isVisible active', function (unused) {
-                    addClassToDOMElement('.slide', 'isVisible active', function (msg) {
+                addClassToDOMElements('.opener', 'isVisible active', function (unused) {
+                    addClassToDOMElements('.slide', 'isVisible active', function (msg) {
                         displayResult('Loaded ' + (msg.numLoaded ? msg.numLoaded : 'all') + ' slides');
                     });
                 });
@@ -285,21 +260,28 @@ function getSupportedSitesInfo() {
                 var urlFormat = thisInfo.getReplaceFormat(url);
                 var addPage = function (pageNum) {
                     httpGet(urlFormat.format(pageNum), function (responseText) {
+                        // Get the meat of the article and append it to our fullArticleContainer element
                         var html = $.parseHTML(responseText);
                         var articleMeat = $(html).find(thisInfo.articleMeatSelector);
+                        if (pageNum > 1) { // hide article title after page 1
+                            articleMeat.find('.article-header').addClass('hidden');
+                        }
+                        articleMeat.find('.article-footer-v2').addClass('hidden');
+                        
                         fullArticleContainer.append(articleMeat);
 
                         // Examine the page.  If it's the last one, add the elements to the page;
                         // otherwise, keep going.
                         if (thisInfo.isLastPage(responseText)) {
-                            // Done - get the element (TODO: or elements) containing the meat of the article;
-                            // replace with the element that we created.
-                            replaceDOMElement(thisInfo.articleMeatSelector, fullArticleContainer[0].outerHTML, function (msg) {
+                            fullArticleContainer.addClass(thisInfo.articleMeatSelector);
+                            // Done - get the appropriate element on the page and replace it with 
+                            // the element that we created.
+                            replaceDOMElements(thisInfo.articleMeatSelector, fullArticleContainer[0].outerHTML, function (msg) {
                                 if (msg && msg.success) {
                                     displayResult('Loaded ' + (pageNum) + ' pages');
                                 }
                                 else {
-                                    displayResult('Something went wrong. :( Let me know: onepage.suggest@gmail.com.');
+                                    displayResult(GENERIC_ERROR);
                                 }
                             });
                         }
@@ -367,22 +349,215 @@ function getSupportedSitesInfo() {
                 var urlFormat = thisInfo.getReplaceFormat(url);
                 var addPage = function (pageNum) {
                     httpGet(urlFormat.format(pageNum), function (responseText) {
+                        // Get the meat of the article and append it to our fullArticleContainer element
                         var html = $.parseHTML(responseText);
                         var articleMeat = $(html).find(thisInfo.articleMeatSelector);
                         fullArticleContainer.append(articleMeat);
-                        fullArticleContainer.addClass('partial content_story_pages_slide primary');
 
                         // Examine the page.  If it's the last one, add the elements to the page;
                         // otherwise, keep going.
                         if (thisInfo.isLastPage(responseText)) {
-                            // Done - get the element containing the meat of the article;
-                            // replace with the element that we created.
-                            replaceDOMElement('.slot[data-slot="center"]', fullArticleContainer[0].outerHTML, function (msg) {
+                            fullArticleContainer.addClass(thisInfo.articleMeatSelector + ' partial content_story_pages_slide primary');
+                            // Done - get the appropriate element on the page and replace it with 
+                            // the element that we created.
+                            replaceDOMElements('.slot[data-slot="center"]', fullArticleContainer[0].outerHTML, function (msg) {
                                 if (msg && msg.success) {
                                     displayResult('Loaded ' + (pageNum) + ' pages');
                                 }
                                 else {
-                                    displayResult('Something went wrong. :( Let me know: onepage.suggest@gmail.com.');
+                                    displayResult(GENERIC_ERROR);
+                                }
+                            });
+                        }
+                        else {
+                            addPage(pageNum + 1);
+                        }
+                    });
+                }
+                addPage(1);
+            }
+        },
+
+        "emgn.com": {
+            // Example URLs:
+            // http://www.emgn.com/s3/article-title-here
+            // http://www.emgn.com/s3/article-title-here/
+            // http://www.emgn.com/s3/article-title-here/10
+            // http://www.emgn.com/s3/article-title-here/10/
+            // http://www.emgn.com/s3/article-title-here/10#something
+            // http://www.emgn.com/s3/article-title-here/10?x=y
+            getReplaceFormat: function (url) {
+                var ret = '';
+                var protocol = '';
+                var protocolEnd = url.indexOf('://');
+                if (protocolEnd >= 0) {
+                    protocol = url.substring(0, protocolEnd + 3);
+                    url = url.substring(protocolEnd + 3);
+                }
+                var parts = url.split('/');
+                if (parts.length < 3) {
+                    return '';
+                }
+                if (parts.length == 3) { // nothing after the article title
+                    return (protocol ? protocol : 'http://') + url + '/{0}';
+                }
+                if (parts.length == 4 && parts[3] == '') { // nothing after title, trailing slash
+                    return (protocol ? protocol : 'http://') + url + '{0}';
+                }
+                var pageRegExp = /^([0-9]*)((?:\?.*)|(?:#.*))?/i;
+                var matches = parts[3].match(pageRegExp);
+                if (!matches || matches.length < 2) {
+                    renderStatus('Invalid URL format :(');
+                }
+                // Reconstruct URL - start with 1 because 0 is the full match
+                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/' + parts[2] + '/';
+                for (var i = 1; i < matches.length; i++) {
+                    if (matches[i] == null)
+                        continue;
+                    if (i == 2)
+                        ret += '{0}';
+                    else
+                        ret += matches[i];
+                }
+                return ret;
+            },
+            articleMeatSelector: '.content > *:not(aside):not(.pagination):not(.rrssb-holder)',
+            isLastPage: function (responseText) {
+                return false;
+            },
+            isPastLastPage: function (responseText) {
+                // If there isn't a 'Next' button, or there is one with text 'Next Article',
+                // we've past the last page
+                var html = $.parseHTML(responseText);
+                var nextDiv = $(html).find('.pagination .next');
+                return (nextDiv.length && (nextDiv[0].innerText).indexOf('Article') >= 0); // this is the junky page before next article
+            },
+            loadAll: function (thisInfo, fullArticleContainer, url) {
+                // Function to execute after retrieving all of the article content
+                var afterLastPage = function (pageNum) {
+                    fullArticleContainer.addClass('content');
+                    // Done - get the appropriate element on the page and replace it with 
+                    // the element that we created.
+                    replaceDOMElements('article.content', fullArticleContainer[0].outerHTML, function (msg) {
+                        if (msg && msg.success) {
+                            displayResult('Loaded ' + (pageNum) + ' pages');
+                        }
+                        else {
+                            displayResult(GENERIC_ERROR);
+                        }
+                    });
+                }
+
+                // Recursively retrieve pages of article until the last one
+                var urlFormat = thisInfo.getReplaceFormat(url);
+                var addPage = function (pageNum) {
+                    httpGet(urlFormat.format(pageNum), function (responseText) {
+                        // Get the meat of the article and append it to our fullArticleContainer element
+                        var html = $.parseHTML(responseText);
+                        if (thisInfo.isPastLastPage(responseText)) {
+                            afterLastPage(pageNum);
+                        }
+                        else {
+                            if (pageNum > 1) {
+                                thisInfo.articleMeatSelector += ':not(h1)'; // don't show the title more than once
+                            }
+                            var articleMeat = $(html).find(thisInfo.articleMeatSelector);
+                            fullArticleContainer.append(articleMeat);
+
+                            // Examine the page.  If it's the last one, add the elements to the page;
+                            // otherwise, keep going.
+                            if (thisInfo.isLastPage(responseText)) {
+                                afterLastPage(pageNum);
+                            }
+                            else {
+                                addPage(pageNum + 1);
+                            }
+                        }
+
+                    });
+                }
+                addPage(1);
+            }
+        },
+
+        "lifebuzz.com": {
+            // Example URLs:
+            // http://www.lifebuzz.com/article-title-here
+            // http://www.lifebuzz.com/article-title-here/
+            // http://www.lifebuzz.com/article-title-here/10
+            // http://www.lifebuzz.com/article-title-here/10/
+            // http://www.lifebuzz.com/article-title-here/10#something
+            // http://www.lifebuzz.com/article-title-here/10/?x=y
+            getReplaceFormat: function (url) {
+                var ret = '';
+                var protocol = '';
+                var protocolEnd = url.indexOf('://');
+                if (protocolEnd >= 0) {
+                    protocol = url.substring(0, protocolEnd + 3);
+                    url = url.substring(protocolEnd + 3);
+                }
+                var parts = url.split('/');
+                if (parts.length < 2) {
+                    return '';
+                }
+                if (parts.length == 2) { // nothing after the article title
+                    return (protocol ? protocol : 'http://') + url + '/{0}';
+                }
+                if (parts.length == 3 && parts[2] == '') { // nothing after title, trailing slash
+                    return (protocol ? protocol : 'http://') + url + '{0}';
+                }
+                var pageRegExp = /^([0-9]*)((?:\?.*)|(?:#.*))?/i;
+                var matches = parts[2].match(pageRegExp);
+                if (!matches || matches.length < 1) {
+                    renderStatus('Invalid URL format :(');
+                }
+                // Reconstruct URL - start with 1 because 0 is the full match
+                ret = (protocol ? protocol : 'http://') + parts[0] + '/' + parts[1] + '/';
+                for (var i = 1; i < matches.length; i++) {
+                    if (matches[i] == null)
+                        continue;
+                    if (i == 1)
+                        ret += '{0}';
+                    else
+                        ret += matches[i];
+                }
+                return ret;
+            },
+            articleMeatSelector: '.single > *:not(#desktop-below-post-trending)',
+            isLastPage: function (responseText) {
+                // If there isn't a 'Next' button, or there is one that links to '/t/end-gallery',
+                // this is the last page
+                var html = $.parseHTML(responseText);
+                var nextLink = $(html).find('a.next-post');
+                return (nextLink.length);
+            },
+            loadAll: function (thisInfo, fullArticleContainer, url) {
+                // Recursively retrieve pages of article until the last one
+                var urlFormat = thisInfo.getReplaceFormat(url);
+                var addPage = function (pageNum) {;
+                    httpGet(urlFormat.format(pageNum), function (responseText) {
+                        // Get the meat of the article and append it to our fullArticleContainer element
+                        var html = $.parseHTML(responseText);
+                        var articleMeat = $(html).find(thisInfo.articleMeatSelector);
+                        articleMeat.find('img.lazy').each(function (index, listItem) {
+                            $(listItem).attr('src', $(listItem).attr('data-original'));
+                        });
+                        fullArticleContainer.append(articleMeat);
+
+                        // Examine the page.  If it's the last one, add the elements to the page;
+                        // otherwise, keep going.
+                        if (thisInfo.isLastPage(responseText)) {
+                            // Done - get the appropriate element on the page and replace it with 
+                            // the element that we created.
+                            fullArticleContainer.addClass('single');
+                            fullArticleContainer.find('.post-pagination').addClass('hidden');
+                            fullArticleContainer.find('.share-bar').addClass('hidden');
+                            replaceDOMElements('.single', fullArticleContainer[0].outerHTML, function (msg) {
+                                if (msg && msg.success) {
+                                    displayResult('Loaded ' + (pageNum) + ' pages');
+                                }
+                                else {
+                                    displayResult(GENERIC_ERROR);
                                 }
                             });
                         }

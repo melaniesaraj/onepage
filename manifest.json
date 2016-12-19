@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
 
-    "name": "OnePage / Hello World",
-    "description": "This extension will condense annoying, multi-page articles into one page. Icon by Vaadin from flaticon.com & is licensed by Creative Commons By 3.0.",
+    "name": "OnePage",
+    "description": "This extension will condense annoying, multi-page articles into one page, seamlessly inserting the whole article onto the page you're viewing.  Icon by Vaadin from flaticon.com & is licensed by Creative Commons By 3.0.",
     "version": "1.0",
 
     "browser_action": {
