@@ -85,6 +85,32 @@ function replaceDOMElements(selector, elmToInsertHtml, callback, replaceMultiple
 }
 
 /**
+ * Sends a message requesting to replace an element with another to the script running on the page
+ * and then calls callback.
+ */
+function addClassToDOMElements(selector, classToAdd, callback) {
+    var queryInfo = {
+        active: true,
+        currentWindow: true
+    };
+    chrome.tabs.query(queryInfo, function (tabs) {
+        var tab = tabs[0];
+        chrome.tabs.getSelected(null, function(tab) {
+            ensureSendMessage(tab.id, 
+            { requestType: "addClassToDOMElements", selector: selector, classToAdd: classToAdd },
+            function (response) {
+                if (!response) {
+                    displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
+                        true); // reenable button
+                    return;
+                }
+                callback(response);
+            });
+        });
+    });
+}
+
+/**
  * When the popup has loaded, checks the URL to see if it's supported.  Wires up the De-paginate
  * button if so.
  */
@@ -97,8 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Get the whatever.whatever part of the URL, since that's the key used to store 
             // site-specific info
-            var urlRegExp = /^(?:(?:http[s]?|ftp):\/)?\/?(?:www\.)*([^:\/\s]+)/i;
-            var matches = url.match(urlRegExp);
+            var urlRegEx = /^(?:(?:http[s]?|ftp):\/)?\/?(?:www\.)*([^:\/\s]+)/i;
+            var matches = url.match(urlRegEx);
             if (matches.length < 2) {
                 renderStatus('Invalid URL format. :( Let me know: onepage.suggest@gmail.com.');
                 return; 
@@ -214,7 +240,7 @@ function getSupportedSitesInfo() {
             // http://www.knowable.com/a/article-title-here/p-10?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var regex = /(http[s]?:\/\/)?(www\.)*(knowable.com\/a\/[^\/]+)((\/p-)([0-9]*))?(.*)/i;
+                var regex = /(http[s]?:\/\/)?(www\.)*(knowable\.com\/a\/[^\/]+)((\/p-)([0-9]*))?(.*)/i;
                 var matches = url.match(regex);
                 if (!matches) {
                     renderStatus('Invalid URL format :(');
@@ -224,7 +250,7 @@ function getSupportedSitesInfo() {
                 ret += (matches[1] ? matches[1] : '')               // http://
                     + (matches[2] ? matches[2] : '')                // www.
                     + (matches[3])                                  // knowable.com/a/article-title-here
-                    + (matches[4] ? matches[5] + '{0}' : 'p-{0}')   // /p-X
+                    + (matches[4] ? matches[5] + '{0}' : '/p-{0}')   // /p-X
                     + (matches[7] ? matches[7] : '');               // anything after that
                 return ret;
             },
@@ -284,7 +310,7 @@ function getSupportedSitesInfo() {
             // http://www.suggest.com/section/1234/article-title-here/?story_page=10&something 
             getReplaceFormat: function (url) {
                 var ret = '';
-                var regex = /(http[s]?:\/\/)?(www\.)*(suggest.com\/[^\/]+\/[^\/]+\/[^\/]+)((\/\?story_page=)([0-9]*))?(.*)/i;
+                var regex = /(http[s]?:\/\/)?(www\.)*(.+\.com\/[^\/]+\/[^\/]+\/[^\/]+)((\/\?story_page=)([0-9]*))?(.*)/i;
                 var matches = url.match(regex);
                 if (!matches) {
                     renderStatus('Invalid URL format :(');
@@ -293,9 +319,9 @@ function getSupportedSitesInfo() {
                 // Reconstruct URL
                 ret += (matches[1] ? matches[1] : '')               // http://
                     + (matches[2] ? matches[2] : '')                // www.
-                    + (matches[3])                                  // suggest.com/section/1234/article-title-here
-                    + (matches[4] ? matches[5] + '{0}' : '/?story_page={0}')   // /?story_page=X
-                    + (matches[7] ? matches[7] : '');               // anything after that
+                    + (matches[3])                                  // suggest.com/section/1234/article-title-here OR minq.com/...
+                    + (matches[4] ? matches[5] + '{0}' : '/?story_page={0}')    // /?story_page=X
+                    + (matches[7] && matches[7] != '/' ? matches[7] : '');      // anything after that
                 return ret;
             },
             articleMeatSelector: '.slide',
@@ -350,7 +376,7 @@ function getSupportedSitesInfo() {
             // http://www.emgn.com/s3/article-title-here/10?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var regex = /(http[s]?:\/\/)?(www\.)*(emgn.com\/[^\/]+\/[^\/]+)((\/)([0-9]*))?(.*)/i;
+                var regex = /(http[s]?:\/\/)?(www\.)*(emgn\.com\/[^\/]+\/[^\/]+)((\/)([0-9]*))?(.*)/i;
                 var matches = url.match(regex);
                 if (!matches) {
                     renderStatus('Invalid URL format :(');
@@ -433,7 +459,7 @@ function getSupportedSitesInfo() {
             // http://www.lifebuzz.com/article-title-here/10/?x=y
             getReplaceFormat: function (url) {
                 var ret = '';
-                var regex = /(http[s]?:\/\/)?(www\.)*(lifebuzz.com\/[^\/]+)((\/)([0-9]*))?(.*)/i;
+                var regex = /(http[s]?:\/\/)?(www\.)*(lifebuzz\.com\/[^\/]+)((\/)([0-9]*))?(.*)/i;
                 var matches = url.match(regex);
                 if (!matches) {
                     renderStatus('Invalid URL format :(');
