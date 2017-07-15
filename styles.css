@@ -21,8 +21,18 @@ body {
     font-style: italic;
 }
 #deslideLink {
-    float: right;
     font-weight: 600;
+}
+#buttonNote {
+    font-size: 85%;
+}
+.leftSide {
+    float: left;
+    margin-bottom: 20px;
+}
+.rightSide {
+    float: right;
+    margin-bottom: 20px;
 }
 
 /* buttons */

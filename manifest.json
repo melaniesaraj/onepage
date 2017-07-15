@@ -13,13 +13,14 @@
     "content_scripts": [
         {
             "matches": [ "http://*/*", "https://*/*" ],
-            "js": [ "jQuery.js", "contentScript.js" ],
+            "js": [ "jQuery.js", "sharedContentPopup.js", "contentScript.js" ],
             "css": [ "styles.css" ]
         }
-    ],
+    ],    
     "permissions": [
         "activeTab",
         "tabs",
-        "https://ajax.googleapis.com/"
+        "https://ajax.googleapis.com/",
+        "background"
     ]
 }
