@@ -7,23 +7,36 @@ body {
     font-size: 100%;
     color: #222;
 }
-#popup {
+#popup, #pagePopup {
     width: 350px;
 }
-#status, #secondaryStatus {
+#pagePopup {
+    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif; /* TODO: Open Sans or some other gr8 font */
+    font-size: 15px;
+    color: #222;
+    padding: 8px;
+    
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background:rgba(255, 240, 255, 0.8);
+    border-radius: 4px;
+    z-index: 9999;
+}
+#status, #pageStatus, #secondaryStatus, #pageSecondaryStatus {
     white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 15px;
     font-weight: 600;
 }
-#secondaryStatus {
+#secondaryStatus, #pageSecondaryStatus {
     font-style: italic;
 }
-#deslideLink {
+#deslideLink, #pageDeslideLink {
     font-weight: 600;
 }
-#buttonNote {
+#buttonNote, #pageButtonNote {
     font-size: 85%;
 }
 .leftSide {

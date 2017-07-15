@@ -33,7 +33,7 @@ function sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButton
             if (!supported && displayImmediateFailures) {
                 renderStatus(NOT_SUPPORTED_ERROR); // but Deslide may have support, so don't return
             }
-            else {
+            else if (supported) {
                 // We do!  Display message and attach handler to button
                 btn.removeAttr('disabled');
                 renderStatus('Annoying page detected. Fix it?');

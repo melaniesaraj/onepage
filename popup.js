@@ -2,19 +2,17 @@
  * Performs initialization that doesn't depend on the DOM.
  */
 function init() {
-    // nothing rn
+    // Call sharedInit from sharedContentPopup, which will check whether the site is supported
+    // and display relevant info in the popup.
+    sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButtonNote, true);
 }
-
-init();
 
 /**
  * When the popup has loaded, checks the URL to see if it's supported.  Wires up the De-paginate
  * button if so.
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // Call sharedInit from sharedContentPopup, which will check whether the site is supported
-    // and display relevant info in the popup.
-    sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButtonNote);
+    init();
 });
 
 /**

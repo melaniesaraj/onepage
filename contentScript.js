@@ -4,12 +4,39 @@ var GENERIC_ERROR = 'Something went wrong. :( Let me know: onepage.suggest@gmail
  * Performs initialization that doesn't depend on the DOM.
  */
 function init() {
+    // Add popup to page  
+    var popupHtml = 
+        '<div id="pagePopup" class="hidden">' +
+            '<div id="pageStatus" class="hidden"></div>' +
+            '<div id="pageSecondaryStatus" class="hidden"></div>' +
+            '<div id="pageMainContent">' +
+                '<div class="leftSide">' +
+                    '<button class="btn" type="submit" id="pageDepaginateBtn" disabled>Un-paginate</button>' +
+                    '<div class="spinner hidden">' +
+                        '<div class="rect1"></div>' +
+                        '<div class="rect2"></div>' +
+                        '<div class="rect3"></div>' +
+                        '<div class="rect4"></div>' +
+                        '<div class="rect5"></div>' +
+                    '</div>' +
+                    '<br/>' +
+                    '<span id="pageButtonNote"></span>' +
+                '</div>' +
+                '<div class="rightSide">' +
+                    '<a id="pageDeslideLink" class="hidden" href="#" target="_blank">View on deslide</a>' +
+                '</div>' +
+            '</div>' +
+        '<div>';
+    $('body').append($(popupHtml));
+
     // Call sharedInit from sharedContentPopup, which will check whether the site is supported
     // and display a popup if it is.
     sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButtonNote, false);
 }
 
-init();
+$(document).ready(function() {
+    init();
+});
 
 /**
  * Gets the current URL and then calls callback.
@@ -25,14 +52,35 @@ function getCurrentTabUrl(callback) {
  */
 function renderStatus(statusText, secondaryStatus) {
     console.log('renderStatus placeholder!! ' + statusText + ' ' + secondaryStatus);
-}
+    
+    // // unhide
+    // var popup = document.getElementById('pagePopup');
+    // $(popup).removeClass('hidden');
+    // console.log(popup);
+
+    // // show status
+    // var statusDiv;
+    // if (secondaryStatus) {
+    //     statusDiv = document.getElementById('pageSecondaryStatus'); 
+    // }
+    // else {
+    //     statusDiv = document.getElementById('pageStatus');
+    // }
+    // statusDiv.textContent = statusText;
+    // $(statusDiv).removeClass('hidden');
+
+    // // hide again
+    // setTimeout(function() {
+    //     $(popup).addClass('hidden');
+    // }, 7000);
+};
 
 /**
  * Show status, hide the loading 'spinner', and reenable the button.
  * TODO
  */
 function displayResult(message, reenableButton) {
-    console.error('displayResult placeholder!! ' + message + ' ' + reenableButton);
+    console.log('displayResult placeholder!! ' + message + ' ' + reenableButton);
 }
 
 /**
@@ -40,7 +88,7 @@ function displayResult(message, reenableButton) {
  * TODO
  */
 function displayButtonNote(message) {
-    console.error('displayButtonNote placeholder!! ' + message);
+    console.log('displayButtonNote placeholder!! ' + message);
 }
 
 /**
