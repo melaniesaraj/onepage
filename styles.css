@@ -10,18 +10,27 @@ body {
 #popup, #pagePopup {
     width: 350px;
 }
+#popup a, #pagePopup a, .closeLink {
+    color: #f00a71;
+}
 #pagePopup {
     font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif; /* TODO: Open Sans or some other gr8 font */
     font-size: 15px;
-    color: #222;
-    padding: 8px;
-    
+    color: #111;
+
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .3);
+    padding: 8px;  
     position: fixed;
     top: 20px;
     right: 20px;
-    background:rgba(255, 240, 255, 0.8);
+    background:rgba(255, 255, 255, 0.8);
     border-radius: 4px;
     z-index: 9999;
+}
+.closeLink {
+    float: right;
+    font-weight: 600;
 }
 #status, #pageStatus, #secondaryStatus, #pageSecondaryStatus {
     white-space: normal;
@@ -33,19 +42,19 @@ body {
 #secondaryStatus, #pageSecondaryStatus {
     font-style: italic;
 }
-#deslideLink, #pageDeslideLink {
-    font-weight: 600;
-}
 #buttonNote, #pageButtonNote {
     font-size: 85%;
 }
+.deslideLink {
+    font-weight: 600;
+}
 .leftSide {
     float: left;
-    margin-bottom: 20px;
+    margin-bottom: 13px;
 }
 .rightSide {
     float: right;
-    margin-bottom: 20px;
+    margin-bottom: 13px;
 }
 
 /* buttons */
@@ -86,6 +95,9 @@ body {
     display: inline-block;
     -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
     animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+#pagePopup .spinner > div {
+    margin: 0 1px; /* idky but we need this here */
 }
 .spinner .rect2 {
     -webkit-animation-delay: -1.1s;

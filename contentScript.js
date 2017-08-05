@@ -7,6 +7,7 @@ function init() {
     // Add popup to page  
     var popupHtml = 
         '<div id="pagePopup" class="hidden">' +
+            '<a class="closeLink btn-link" href="javascript:void(0)" tabindex="0">close</a>' +
             '<div id="pageStatus" class="hidden"></div>' +
             '<div id="pageSecondaryStatus" class="hidden"></div>' +
             '<div id="pageMainContent">' +
@@ -23,11 +24,15 @@ function init() {
                     '<span id="pageButtonNote"></span>' +
                 '</div>' +
                 '<div class="rightSide">' +
-                    '<a id="pageDeslideLink" class="hidden" href="#" target="_blank">View on deslide</a>' +
+                    '<a class="deslideLink hidden" href="#" target="_blank">View on deslide</a>' +
                 '</div>' +
             '</div>' +
         '<div>';
     $('body').append($(popupHtml));
+
+    $('.closeLink').on('click', function(evt) {
+        hidePopup();
+    });
 
     // Call sharedInit from sharedContentPopup, which will check whether the site is supported
     // and display a popup if it is.
@@ -46,61 +51,72 @@ function getCurrentTabUrl(callback) {
     callback(document.location.href);
 }
 
+function hidePopup() {
+    var popup = document.getElementById('pagePopup');
+    $(popup).addClass('hidden');
+}
+
 /**
  * Display status in popup.
- * TODO 
  */
 function renderStatus(statusText, secondaryStatus) {
-    console.log('renderStatus placeholder!! ' + statusText + ' ' + secondaryStatus);
-    
-    // // unhide
-    // var popup = document.getElementById('pagePopup');
-    // $(popup).removeClass('hidden');
-    // console.log(popup);
+    // unhide popup
+    var popup = document.getElementById('pagePopup');
+    $(popup).removeClass('hidden');
 
-    // // show status
-    // var statusDiv;
-    // if (secondaryStatus) {
-    //     statusDiv = document.getElementById('pageSecondaryStatus'); 
-    // }
-    // else {
-    //     statusDiv = document.getElementById('pageStatus');
-    // }
-    // statusDiv.textContent = statusText;
-    // $(statusDiv).removeClass('hidden');
+    // show status
+    var statusDiv;
+    if (secondaryStatus) {
+        statusDiv = document.getElementById('pageSecondaryStatus'); 
+    }
+    else {
+        statusDiv = document.getElementById('pageStatus');
+    }
+    statusDiv.textContent = statusText;
+    $(statusDiv).removeClass('hidden');
 
-    // // hide again
-    // setTimeout(function() {
-    //     $(popup).addClass('hidden');
-    // }, 7000);
+    // hide again
+    setTimeout(function() {
+        if (!buttonClicked) {
+            hidePopup();
+        }
+    }, 7000);
 };
 
 /**
  * Show status, hide the loading 'spinner', and reenable the button.
- * TODO
  */
 function displayResult(message, reenableButton) {
-    console.log('displayResult placeholder!! ' + message + ' ' + reenableButton);
+    renderStatus(message);
+    $('.spinner').addClass('hidden');
+    if (reenableButton) {
+        $('#pageDepaginateBtn').removeAttr('disabled');
+    }
+
+    // hide again
+    setTimeout(function() {
+        hidePopup();
+    }, 4500);
 }
 
 /**
  * Show small message under primary button.
- * TODO
  */
 function displayButtonNote(message) {
-    console.log('displayButtonNote placeholder!! ' + message);
+    var buttonNote = document.getElementById('pageButtonNote');
+    buttonNote.textContent = message;
+    $(buttonNote).removeClass('hidden');
 }
 
 /**
  * Loads the entire article.
- * TODO
  */
 function loadAll(url, baseSite) {
     var siteInfo = getSupportedSitesInfo()[baseSite];
 
     // Load spinner and disable button
     $('.spinner').removeClass('hidden');
-    $('#depaginateBtn').attr('disabled', true);
+    $('#pageDepaginateBtn').attr('disabled', true);
 
     // Create a new div that we will insert onto the page
     var fullArticleContainer = $('<div id="newArticleBody"></div>');
@@ -118,11 +134,47 @@ function loadAll(url, baseSite) {
     }
 } 
 
+/**
+ * Sends a message requesting to replace an element with another to the script running on the page
+ * and then calls callback.
+ */
+function replaceDOMElements(selector, elmToInsertHtml, callback, replaceMultiple) {
+    doDomWork({ requestType: 'replaceDOMElements', selector: selector, elmToInsertHtml: elmToInsertHtml, replaceMultiple: replaceMultiple }, 
+        function (response) {
+            onDOMOperationResponse(response);
+            callback(response);
+        });
+}
+
+/**
+ * Sends a message requesting to add a class to element(s) to the script running on the page and
+ * then calls callback.
+ */
+function addClassToDOMElements(selector, classToAdd, callback) {
+    doDomWork({ requestType: 'addClassToDOMElements', selector: selector, classToAdd: classToAdd }, 
+        function (response) {
+            onDOMOperationResponse(response);
+            callback(response);
+        });
+}
+
+/**
+ * Sends a message to the script running on the page requesting to trigger an event on an element,
+ * then calls callback.
+ */
+function triggerEventOnDOMElement(selector, event, callback) {
+    doDomWork({ requestType: 'triggerEventOnDOMElement', selector: selector, event: event }, 
+        function (response) {
+            onDOMOperationResponse(response);
+            callback(response);
+        });
+}
+
 /*
  * Does all DOM-related work. 
  */
 function doDomWork(msg, sendResponse) {
-    if (msg.requestType == "replaceDOMElements") {
+    if (msg.requestType == 'replaceDOMElements') {
         try {
             var toReplace = $(document).find(msg.selector);
             if (!msg.replaceMultiple)
@@ -139,7 +191,7 @@ function doDomWork(msg, sendResponse) {
             sendResponse({ success: false, error: ex });
         }
     } 
-    else if (msg.requestType == "addClassToDOMElements") {
+    else if (msg.requestType == 'addClassToDOMElements') {
         try {
             var elms = $(document).find(msg.selector);
             elms.addClass(msg.classToAdd);
@@ -150,7 +202,7 @@ function doDomWork(msg, sendResponse) {
         }
         sendResponse({ success: true });
     }
-    else if (msg.requestType == "triggerEventOnDOMElement") {
+    else if (msg.requestType == 'triggerEventOnDOMElement') {
         try {
             var elm = $(document).find(msg.selector);
             if (msg.event == 'click') {

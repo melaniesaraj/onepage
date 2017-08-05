@@ -70,11 +70,7 @@ function replaceDOMElements(selector, elmToInsertHtml, callback, replaceMultiple
                 { requestType: "replaceDOMElements", selector: selector, 
                     elmToInsertHtml: elmToInsertHtml, replaceMultiple: replaceMultiple },
                 function (response) {
-                    if (!response) {
-                        displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
-                            true); // reenable button
-                        return;
-                    }
+                    onDOMOperationResponse(response);
                     callback(response);
                 });
         });
@@ -93,11 +89,7 @@ function addClassToDOMElements(selector, classToAdd, callback) {
             ensureSendMessage(tab.id, 
             { requestType: "addClassToDOMElements", selector: selector, classToAdd: classToAdd },
             function (response) {
-                if (!response) {
-                    displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
-                        true); // reenable button
-                    return;
-                }
+                onDOMOperationResponse(response);
                 callback(response);
             });
         });
@@ -116,11 +108,7 @@ function triggerEventOnDOMElement(selector, event, callback) {
             ensureSendMessage(tab.id, 
             { requestType: "triggerEventOnDOMElement", selector: selector, event: event },
             function (response) {
-                if (!response) {
-                    displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
-                        true); // reenable button
-                    return;
-                }
+                onDOMOperationResponse(response);
                 callback(response);
             });
         });

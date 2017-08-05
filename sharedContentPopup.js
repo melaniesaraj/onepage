@@ -9,13 +9,16 @@ String.prototype.format = function() {
     });
 };
 
+var buttonClicked = false;
 var _deslideSites = getDeslideSupportedSites();
 
 function sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButtonNote, displayImmediateFailures) {
     try {
         getCurrentTabUrl(function (url) {
-            console.log('getCurrentTabUrl ' + url);
             var btn = $('#depaginateBtn');
+            if (btn.length == 0) {
+                btn = $('#pageDepaginateBtn');
+            }
 
             // Get the whatever.whatever part of the URL, since that's the key used to store 
             // site-specific info
@@ -29,7 +32,6 @@ function sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButton
             // See if we have info on how to handle this site
             var sitesInfo = getSupportedSitesInfo();
             var supported = sitesInfo.hasOwnProperty(matches[1]);
-            console.log(matches[1] + ' supported? ' + supported);
             if (!supported && displayImmediateFailures) {
                 renderStatus(NOT_SUPPORTED_ERROR); // but Deslide may have support, so don't return
             }
@@ -38,6 +40,7 @@ function sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButton
                 btn.removeAttr('disabled');
                 renderStatus('Annoying page detected. Fix it?');
                 btn.on('click', function(evt) {
+                    buttonClicked = true;
                     loadAll(url, matches[1]);
                 });
                 // Display any special message specific to the site
@@ -54,8 +57,8 @@ function sharedInit(getCurrentTabUrl, renderStatus, displayResult, displayButton
                 var deslideUrl = 'http://deslide.clusterfake.net/?u=' + escape(url);
                 if (deslideSupportedFormat != matches[1])
                     deslideUrl += '&handler=' + deslideSupportedFormat;
-                $('#deslideLink').attr('href', deslideUrl);
-                $('#deslideLink').removeClass('hidden');
+                $('.deslideLink').attr('href', deslideUrl);
+                $('.deslideLink').removeClass('hidden');
             }
         });
     }
@@ -109,6 +112,17 @@ function httpGet(url, callback) {
     xmlHttp.send();
 }
 
+/*
+ * Does whatever we need to do after getting the result of the DOM operation.
+ */
+function onDOMOperationResponse(response) {
+    if (!response) {
+        displayResult('Page isn\'t ready (not the extension\'s fault!) - try again in a few seconds.  Refreshing could help too.',
+            true); // reenable button
+        return;
+    }
+}
+        
 /**
  * Stores info about particular websites: how their article URLs are formed, where on the page
  * the meat of the articles are found, and how to know by looking at the HTML of a page whether
